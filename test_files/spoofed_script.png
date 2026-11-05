@@ -1,0 +1,5 @@
+<?php
+// Script malicioso camuflado con extensión .png
+// Si el servidor solo revisa la extensión o el header Content-Type, este archivo pasaría.
+echo "¡Bypass exitoso si estás viendo esto!";
+?>

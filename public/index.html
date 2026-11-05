@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Libre: Editar perfil | Laboratorio AppSec CWE-434</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- ========================================================= -->
+    <!-- BARRA SUPERIOR DE CONTROL ACADÉMICO (LABORATORIO APPSEC)  -->
+    <!-- ========================================================= -->
+    <aside class="academic-lab-bar" aria-label="Controles del laboratorio">
+        <div class="lab-title">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>LABORATORIO DEFENSIVO: Subida Insegura de Archivos (CWE-434 / OWASP)</span>
+        </div>
+
+        <div class="lab-mode-toggle">
+            <span class="mode-label">Modo Activo:</span>
+            <div class="toggle-switch-container">
+                <button type="button" class="mode-btn active vulnerable" id="btnModeVulnerable" onclick="setLabMode('vulnerable')">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Modo Vulnerable
+                </button>
+                <button type="button" class="mode-btn secure" id="btnModeSecure" onclick="setLabMode('secure')">
+                    <i class="fa-solid fa-lock"></i> Modo Seguro (Remediado)
+                </button>
+            </div>
+        </div>
+
+        <div class="lab-quick-actions">
+            <span class="quick-label">Archivos de Prueba:</span>
+            <button type="button" class="quick-file-btn normal" onclick="loadTestFile('avatar_normal.png')">
+                <i class="fa-solid fa-image"></i> avatar_normal.png
+            </button>
+            <button type="button" class="quick-file-btn exploit" onclick="loadTestFile('exploit_poc.php')">
+                <i class="fa-solid fa-bug"></i> exploit_poc.php (RCE)
+            </button>
+            <button type="button" class="quick-file-btn exploit-xss" onclick="loadTestFile('exploit_xss.html')">
+                <i class="fa-solid fa-code"></i> exploit_xss.html (XSS)
+            </button>
+            <button type="button" class="quick-file-btn exploit" onclick="loadTestFile('spoofed_script.png')">
+                <i class="fa-solid fa-mask"></i> spoofed_script.png (Magic Bytes)
+            </button>
+        </div>
+    </aside>
+
+    <!-- ========================================================= -->
+    <!-- ENCABEZADO OFICIAL DE LA PLATAFORMA EDUCATIVA (e-Libre)  -->
+    <!-- ========================================================= -->
+    <header class="elibre-header">
+        <div class="header-left">
+            <div class="university-crest">
+                <svg viewBox="0 0 100 100" width="38" height="38">
+                    <circle cx="50" cy="50" r="48" fill="#7a0000" stroke="#fff" stroke-width="3"/>
+                    <circle cx="50" cy="50" r="38" fill="#fff"/>
+                    <path d="M50 18 L70 34 L70 66 L50 82 L30 66 L30 34 Z" fill="#7a0000"/>
+                    <circle cx="50" cy="50" r="14" fill="#fff"/>
+                    <text x="50" y="55" font-size="14" font-weight="bold" fill="#7a0000" text-anchor="middle">UL</text>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-e">e</span><span class="brand-dash">-</span><span class="brand-name">Libre</span>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <a href="#" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>Mis cursos</span>
+            </a>
+            <a href="#" class="nav-icon-link">
+                <i class="fa-regular fa-bell"></i>
+            </a>
+            <a href="#" class="nav-icon-link">
+                <i class="fa-regular fa-comment"></i>
+            </a>
+            <div class="user-badge" id="headerUserBadge">
+                <div class="user-avatar-circle" id="headerAvatarCircle">SL</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- BREADCRUMBS -->
+    <nav class="breadcrumb-bar" aria-label="Ruta de navegación">
+        <div class="breadcrumb-container">
+            <a href="#">Preferencias</a>
+            <span class="separator">/</span>
+            <span class="current">Editar perfil</span>
+        </div>
+    </nav>
+
+    <!-- ========================================================= -->
+    <!-- CONTENEDOR PRINCIPAL: INTERFAZ DE PERFIL DE USUARIO       -->
+    <!-- ========================================================= -->
+    <main class="page-container">
+        
+        <!-- ENCABEZADO DE PERFIL -->
+        <div class="profile-hero">
+            <div class="hero-avatar-wrapper">
+                <div class="profile-avatar-large" id="mainHeroAvatar">
+                    <span id="mainHeroInitials">SL</span>
+                    <img id="mainHeroImg" src="" alt="Avatar de usuario" style="display: none;">
+                </div>
+            </div>
+            <div class="hero-details">
+                <h1 class="user-full-name" id="userFullNameHeading">SEBASTIAN JAVIER LLANOS SIERRA</h1>
+                <a href="#" class="btn-message">
+                    <i class="fa-regular fa-comment-dots"></i> Mensaje
+                </a>
+            </div>
+        </div>
+
+        <!-- TÍTULO DE SECCIÓN -->
+        <div class="section-top-bar">
+            <h2>SEBASTIAN JAVIER LLANOS SIERRA</h2>
+            <a href="#" class="expand-all-link">Expandir todo</a>
+        </div>
+
+        <!-- FORMULARIO DE EDICIÓN -->
+        <form id="profileForm" onsubmit="handleFormSubmit(event)">
+            
+            <!-- SECCIÓN: IMAGEN DEL USUARIO -->
+            <div class="accordion-card">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                    <h3>Imagen del usuario</h3>
+                </div>
+
+                <div class="accordion-content open">
+                    
+                    <!-- FILA 1: IMAGEN ACTUAL -->
+                    <div class="form-row">
+                        <label class="form-label">Imagen actual</label>
+                        <div class="form-control-area">
+                            <span id="currentImageText" class="current-img-placeholder">Ninguno</span>
+                            <div id="currentImagePreviewBox" style="display: none;" class="current-img-preview">
+                                <img id="previewThumbnail" src="" alt="Foto de perfil actual">
+                                <div class="preview-meta">
+                                    <span id="previewFilename" class="filename"></span>
+                                    <button type="button" class="btn-link-danger" onclick="resetAvatar()">
+                                        <i class="fa-solid fa-trash-can"></i> Eliminar foto
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FILA 2: IMAGEN NUEVA -->
+                    <div class="form-row">
+                        <label class="form-label">
+                            Imagen nueva
+                            <i class="fa-solid fa-circle-question help-icon" title="Arrastre un archivo o haga clic en el área para seleccionarlo"></i>
+                        </label>
+                        
+                        <div class="form-control-area">
+                            <div class="file-picker-toolbar">
+                                <div class="file-limit-info">
+                                    Tamaño máximo de archivo: <strong>1 GB</strong>, número máximo de archivos: <strong>1</strong>
+                                </div>
+                                <div class="toolbar-icons">
+                                    <button type="button" class="tool-btn active" title="Archivos"><i class="fa-solid fa-folder"></i> Archivos</button>
+                                    <button type="button" class="tool-btn" title="Vista de cuadrícula"><i class="fa-solid fa-table-cells-large"></i></button>
+                                    <button type="button" class="tool-btn" title="Vista de lista"><i class="fa-solid fa-list"></i></button>
+                                    <button type="button" class="tool-btn" title="Detalles"><i class="fa-solid fa-circle-info"></i></button>
+                                </div>
+                            </div>
+
+                            <!-- DROP ZONE DE SUBIDA -->
+                            <div class="moodle-dropzone" id="dropZone" onclick="triggerFileInput()">
+                                <input type="file" id="fileInput" name="avatar" style="display: none;" onchange="handleFileSelected(event)">
+                                <div class="dropzone-inner" id="dropZoneContent">
+                                    <div class="upload-arrow-circle">
+                                        <i class="fa-solid fa-arrow-down"></i>
+                                    </div>
+                                    <p class="dropzone-text">Puede arrastrar y soltar archivos aquí para añadirlos</p>
+                                    <span class="dropzone-subtext">o haga clic para examinar en su equipo</span>
+                                </div>
+
+                                <!-- Vista previa del archivo seleccionado antes de subir -->
+                                <div class="selected-file-display" id="selectedFileDisplay" style="display: none;">
+                                    <div class="file-card-preview">
+                                        <div class="file-icon-box" id="fileIconBox">
+                                            <i class="fa-solid fa-file"></i>
+                                        </div>
+                                        <div class="file-details">
+                                            <div class="file-name" id="selectedFileNameDisplay">avatar.png</div>
+                                            <div class="file-meta" id="selectedFileMetaDisplay">512 bytes • image/png</div>
+                                        </div>
+                                        <button type="button" class="btn-remove-selected" onclick="clearSelectedFile(event)" title="Quitar archivo">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ADVERTENCIA DE TIPOS PERMITIDOS -->
+                            <div class="accepted-types-note">
+                                <span class="note-title">Tipos de archivo aceptados:</span>
+                                <span>Archivos de imágenes a ser optimizados, como por ejemplo insignias <code>.gif</code> <code>.jpe</code> <code>.jpeg</code> <code>.jpg</code> <code>.png</code></span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- FILA 3: DESCRIPCIÓN DE LA IMAGEN -->
+                    <div class="form-row">
+                        <label class="form-label" for="imageDescription">Descripción de la imagen</label>
+                        <div class="form-control-area">
+                            <input type="text" id="imageDescription" name="description" class="input-text" placeholder="Breve descripción del archivo (accesibilidad)">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECCIÓN: OPCIONAL (ACORDEÓN CERRADO) -->
+            <div class="accordion-card">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <i class="fa-solid fa-chevron-right accordion-arrow"></i>
+                    <h3>Opcional</h3>
+                </div>
+            </div>
+
+            <!-- BOTONES DE ACCIÓN PRINCIPALES -->
+            <div class="form-action-buttons">
+                <button type="submit" class="btn-submit-moodle" id="btnSubmitForm">
+                    <i class="fa-solid fa-floppy-disk"></i> Actualizar información personal
+                </button>
+                <button type="button" class="btn-cancel-moodle" onclick="resetForm()">
+                    Cancelar
+                </button>
+            </div>
+
+        </form>
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- PANEL INFERIOR: CONSOLA DE SEGURIDAD DEFENSIVA (APPSEC)    -->
+    <!-- ========================================================= -->
+    <div class="appsec-console-drawer" id="appSecConsole">
+        <div class="console-header" onclick="toggleConsoleDrawer()">
+            <div class="console-title">
+                <i class="fa-solid fa-terminal"></i>
+                <span>Consola de Auditoría AppSec (Telemetría de la Petición y Backend)</span>
+                <span class="badge-status" id="consoleBadge">Listo para auditar</span>
+            </div>
+            <div class="console-controls">
+                <button type="button" class="console-toggle-btn" title="Minimizar / Expandir">
+                    <i class="fa-solid fa-chevron-up" id="consoleToggleIcon"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="console-body" id="consoleBody">
+            <div class="console-grid">
+                
+                <!-- COLUMNA 1: INSPECCIÓN DEL PAYLOAD -->
+                <div class="console-column">
+                    <h4><i class="fa-solid fa-magnifying-glass"></i> Inspección del Archivo Enviado</h4>
+                    <div class="info-table">
+                        <div class="info-row">
+                            <span class="info-key">Nombre Original:</span>
+                            <span class="info-val" id="telemetryName">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">Extensión:</span>
+                            <span class="info-val" id="telemetryExt">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">MIME (Navegador):</span>
+                            <span class="info-val" id="telemetryMime">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">Tamaño:</span>
+                            <span class="info-val" id="telemetrySize">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">Magic Bytes (Hex):</span>
+                            <span class="info-val code" id="telemetryMagic">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA 2: VEREDICTO DE SEGURIDAD DEL BACKEND -->
+                <div class="console-column">
+                    <h4><i class="fa-solid fa-server"></i> Procesamiento del Backend</h4>
+                    <div class="info-table">
+                        <div class="info-row">
+                            <span class="info-key">Endpoint Destino:</span>
+                            <span class="info-val code" id="telemetryEndpoint">/api/upload-vulnerable</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">Almacenado Como:</span>
+                            <span class="info-val" id="telemetrySavedAs">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">Ruta en Disco:</span>
+                            <span class="info-val code" id="telemetryDiskPath">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">URL Pública:</span>
+                            <span class="info-val" id="telemetryUrl">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA 3: IMPACTO O MITIGACIÓN -->
+                <div class="console-column wide">
+                    <h4><i class="fa-solid fa-triangle-exclamation"></i> Diagnóstico de Riesgo / Mitigación (CWE-434)</h4>
+                    <div id="telemetryVerdictBox" class="verdict-box waiting">
+                        <p>Seleccione o cargue uno de los archivos de prueba para analizar el comportamiento del servidor.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE EJECUCIÓN / ALERTA DE EXPLOIT -->
+    <div class="modal-overlay" id="exploitModal" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header" id="modalHeader">
+                <h3 id="modalTitle"><i class="fa-solid fa-skull-crossbones"></i> Simulación de Impacto</h3>
+                <button type="button" class="modal-close-btn" onclick="closeExploitModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Se llena dinámicamente -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <button type="button" class="btn-cancel-moodle" onclick="closeExploitModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

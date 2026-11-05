@@ -1,0 +1,22 @@
+{
+  "name": "lab-unrestricted-file-upload",
+  "version": "1.0.0",
+  "description": "Laboratorio Académico de Seguridad: Subida Insegura de Archivos (CWE-434 / OWASP Top 10)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "cwe-434",
+    "owasp",
+    "file-upload",
+    "appsec",
+    "cybersecurity"
+  ],
+  "author": "Laboratorio AppSec",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
