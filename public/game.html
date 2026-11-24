@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caseta Forense e-Libre | Reto CWE-434</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/css/game.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- ========================================================= -->
+    <!-- BARRA SUPERIOR DE OPERACIONES (HUD INDUSTRIAL FORENSE)    -->
+    <!-- ========================================================= -->
+    <header class="game-hud">
+        <div class="hud-left">
+            <a href="/" class="hud-back-link">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                <span class="hide-sm">Laboratorio</span>
+            </a>
+            <div class="hud-brand">
+                <span class="brand-crest">e-Libre</span>
+                <div class="brand-meta">
+                    <span class="hud-title">Caseta Forense CWE-434</span>
+                    <span class="hud-subtitle">Control de Carga Segura</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hud-stats" id="hudStudentStats" aria-label="Indicadores de la sesión">
+            <div class="hud-pill player-pill">
+                <i class="fa-solid fa-id-card" aria-hidden="true"></i>
+                <span id="hudPlayerName">Sin registro</span>
+            </div>
+            <div class="hud-pill streak-pill" title="Racha de aciertos">
+                <span aria-hidden="true">🔥</span>
+                <span id="hudStreak">0</span>
+            </div>
+            <div class="hud-pill integrity-pill" id="hudIntegrityPill" title="Integridad del servidor">
+                <i class="fa-solid fa-server" aria-hidden="true"></i>
+                <span id="hudIntegrity">100%</span>
+            </div>
+            <div class="hud-pill score-pill">
+                <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+                <span id="hudScore">0</span> <small>PTS</small>
+            </div>
+        </div>
+
+        <div class="hud-actions">
+            <button type="button" class="hud-btn" commandfor="manualDialog" command="show-modal">
+                <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+                <span class="hide-sm">Manual CWE-434</span>
+            </button>
+            <button type="button" class="hud-btn sound-btn" id="btnToggleSound" aria-label="Silenciar o activar efectos de sonido" aria-pressed="true">
+                <i class="fa-solid fa-volume-high" id="soundIcon" aria-hidden="true"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="game-container">
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 1: LOBBY / REGISTRO Y SALAS ASIMÉTRICAS          -->
+        <!-- ========================================================= -->
+        <section id="screenLobby" class="game-screen is-active" aria-labelledby="lobbyHeading">
+            <div class="booth-hero-panel">
+                <div class="caution-strip" aria-hidden="true"></div>
+                <div class="booth-hero-body">
+                    <p class="eyebrow-tag">SIMULADOR DE INSPECCIÓN DE ARCHIVOS • OWASP A04 / CWE-434</p>
+                    <h1 id="lobbyHeading" tabindex="-1">Defiende la caseta de subida de <span class="accent-elibre">e-Libre</span></h1>
+                    <p class="hero-lead">
+                        Supera primero una calibración rápida de <strong>Magic Bytes</strong> y luego el servidor formará <strong>grupos parejos automáticamente</strong> eligiendo al azar <strong>1 Inspector en la caseta y al menos 3 atacantes</strong> según los estudiantes conectados.
+                    </p>
+
+                    <form id="lobbyForm" class="lobby-form">
+                        <div class="form-grid-lobby">
+                            <div class="field-block">
+                                <label for="playerNameInput">Nombre o Apodo del Estudiante</label>
+                                <input
+                                    type="text"
+                                    id="playerNameInput"
+                                    name="playerName"
+                                    maxlength="28"
+                                    autocomplete="nickname"
+                                    placeholder="Ej. Ana María / Carlos_Sec"
+                                    required
+                                >
+                            </div>
+
+                            <div class="mode-assigned-box" aria-live="polite">
+                                <span class="eyebrow-tag">MODALIDAD DEFINIDA EN EL PROYECTOR</span>
+                                <strong id="lobbyActiveModeTitle">Emparejamiento Aleatorio Balanceado (1 Casero vs Atacantes)</strong>
+                                <span class="mode-radio-desc" id="lobbyActiveModeDesc">Superarás la calibración de Magic Bytes y entrarás al sorteo automático de grupos del salón.</span>
+                            </div>
+                        </div>
+
+                        <div id="roomPickerWrap" class="lobby-live-box">
+                            <div class="room-picker-header">
+                                <div>
+                                    <h2>Estado en Vivo de la Clase</h2>
+                                    <p id="lobbyClassSummary">Consultando estudiantes conectados en el servidor...</p>
+                                </div>
+                                <div class="room-picker-controls">
+                                    <button type="button" class="btn-ghost-sm" id="btnRefreshRooms">
+                                        <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Actualizar
+                                    </button>
+                                    <button type="button" class="btn-ghost-sm" commandfor="scoringPopover" command="toggle-popover">
+                                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i> Reglas 1 vs N
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="preview-group-pill" id="lobbyPreviewText">El sorteo automático garantiza al menos 3 atacantes y 1 inspector por cada caseta.</p>
+                        </div>
+
+                        <div class="lobby-cta-row">
+                            <button type="submit" class="btn-primary-booth" id="btnStartLobby">
+                                <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+                                <span id="btnStartLobbyLabel">Comenzar Minijuego de Calibración</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 2: MINIJUEGO PREVIO (CALIBRACIÓN DE FIRMAS)      -->
+        <!-- ========================================================= -->
+        <section id="screenMinigame" class="game-screen" aria-labelledby="minigameHeading" hidden>
+            <div class="panel-surface">
+                <div class="panel-header-row">
+                    <div>
+                        <p class="eyebrow-tag">MINIJUEGO PREVIO • ENTRENAMIENTO EXPRESS</p>
+                        <h1 id="minigameHeading" tabindex="-1">Calibración de Magic Bytes</h1>
+                    </div>
+                    <div class="counter-chip" id="miniCounter">Ronda 1 / 4</div>
+                </div>
+
+                <p class="panel-desc">
+                    Antes de sortear quién va a la caseta y quiénes envían archivos, demuestra en segundos si sabes distinguir una <strong>firma hexadecimal segura</strong> de un <strong>script peligroso</strong>.
+                </p>
+
+                <div class="timer-track" aria-hidden="true">
+                    <div class="timer-fill" id="miniTimerBar"></div>
+                </div>
+                <div class="timer-readout">
+                    <span>Tiempo restante: <strong id="miniTimerText">10s</strong></span>
+                    <span>Puntos de calibración: <strong id="miniScoreText">0 PTS</strong></span>
+                </div>
+
+                <figure class="hex-figure">
+                    <figcaption id="miniHexCaption">Flujo binario capturado en memoria (Primeros 8 bytes):</figcaption>
+                    <pre role="region" aria-labelledby="miniHexCaption" tabindex="0"><code id="miniHexCode">-</code></pre>
+                </figure>
+
+                <div class="mini-meta-bar">
+                    <span>Archivo declarado: <strong id="miniFilename">-</strong></span>
+                    <span>Header MIME: <strong id="miniMime">-</strong></span>
+                </div>
+
+                <div class="mini-actions-grid" id="miniButtonsWrap">
+                    <button type="button" class="btn-stamp-safe" id="btnMiniSafe">
+                        <i class="fa-solid fa-shield-check" aria-hidden="true"></i>
+                        <span>
+                            <strong>FIRMA DE IMAGEN SEGURA</strong>
+                            <small>PNG / JPEG / GIF legítimo</small>
+                        </span>
+                    </button>
+                    <button type="button" class="btn-stamp-danger" id="btnMiniMalicious">
+                        <i class="fa-solid fa-biohazard" aria-hidden="true"></i>
+                        <span>
+                            <strong>FIRMA DE PAYLOAD / ENGAÑO</strong>
+                            <small>PHP / HTML / SVG / Spoofing</small>
+                        </span>
+                    </button>
+                </div>
+
+                <div id="miniFeedback" class="feedback-banner" hidden></div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 2B: SALA DE ESPERA Y SORTEO AUTOMÁTICO           -->
+        <!-- ========================================================= -->
+        <section id="screenWaiting" class="game-screen" aria-labelledby="waitingHeading" hidden>
+            <div class="panel-surface">
+                <div class="panel-header-row">
+                    <div>
+                        <p class="eyebrow-tag">EMPAREJAMIENTO AUTOMÁTICO • 1 INSPECTOR + ≥3 ATACANTES</p>
+                        <h1 id="waitingHeading" tabindex="-1">Sala de Espera — Sorteo de Casetas</h1>
+                    </div>
+                    <span class="live-badge"><span class="live-dot" aria-hidden="true"></span> SINCRONIZANDO</span>
+                </div>
+
+                <p class="panel-desc">
+                    Espera unos segundos mientras tus compañeros terminan la calibración. El presentador iniciará el sorteo de grupos y el video tutorial desde el proyector.
+                </p>
+
+                <div class="preview-group-pill" id="waitingPreviewBox">Calculando reparto parejo...</div>
+                <p class="waiting-warning" id="waitingMinWarning" hidden>
+                    Se recomiendan al menos 4 estudiantes para que cada caseta tenga mínimo 3 atacantes (puedes iniciar igual para probar).
+                </p>
+
+                <ul id="waitingPlayersList" class="waiting-grid" aria-label="Compañeros conectados en espera"></ul>
+
+                <div class="lobby-cta-row">
+                    <button type="button" class="btn-secondary-booth" id="btnWaitingBackLobby">
+                        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Volver al Lobby
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 2C: BRIEFING POST-SORTEO EN CELULARES            -->
+        <!-- ========================================================= -->
+        <section id="screenBriefing" class="game-screen" aria-labelledby="briefingHeading" hidden>
+            <div class="panel-surface">
+                <div class="panel-header-row">
+                    <div>
+                        <p class="eyebrow-tag">GRUPOS SORTEADOS • OBSERVA EL PROYECTOR</p>
+                        <h1 id="briefingHeading" tabindex="-1">¡Tu equipo está listo! Mira el video tutorial</h1>
+                    </div>
+                    <span class="live-badge"><span class="live-dot" aria-hidden="true"></span> TUTORIAL EN CURSO</span>
+                </div>
+
+                <div class="briefing-role-hero" id="briefingRoleCard">
+                    <p class="eyebrow-tag" id="briefingGroupBadge">GRUPO 1 • CASETA ALFA</p>
+                    <h2 id="briefingRoleTitle">Rol asignado por sorteo</h2>
+                    <p id="briefingRoleDesc">Cargando detalles de tu misión...</p>
+                </div>
+
+                <div class="briefing-members-wrap">
+                    <h3>Integrantes sorteados en tu grupo:</h3>
+                    <ul id="briefingMembersList" class="waiting-grid"></ul>
+                </div>
+
+                <p class="preview-group-pill" id="briefingSyncNote">
+                    La partida iniciará automáticamente en tu pantalla en cuanto termine el video tutorial en el proyector o el presentador dé inicio.
+                </p>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 3: ARENA MULTIJUGADOR (1 EN CASETA vs ATACANTES) -->
+        <!-- ========================================================= -->
+        <section id="screenArena" class="game-screen" aria-labelledby="arenaHeading" hidden>
+            <div class="role-reveal-banner" id="arenaRoleBanner" role="status" aria-live="polite">
+                Asignando rol mediante sorteo...
+            </div>
+
+            <div class="arena-status-bar">
+                <div>
+                    <p class="eyebrow-tag" id="arenaRoomBadge">GRUPO 1 • RONDA 1</p>
+                    <h1 id="arenaHeading" tabindex="-1">Casero vs. Atacantes (Supervivencia 2:00)</h1>
+                </div>
+
+                <div class="arena-controls-right">
+                    <div class="timer-chip-arena" id="arenaTimerChip" title="Tiempo restante de supervivencia del Casero">
+                        <i class="fa-solid fa-stopwatch" aria-hidden="true"></i>
+                        <strong id="arenaTimerText">02:00</strong>
+                    </div>
+
+                    <div class="integrity-meter-wrap" id="arenaIntegrityMeter" style="--integrity-pct: 100%;">
+                        <div class="integrity-label-row">
+                            <span>Vida del Casero (HP)</span>
+                            <strong id="arenaIntegrityText">100 HP</strong>
+                        </div>
+                        <div class="integrity-bar">
+                            <div class="integrity-bar-fill"></div>
+                        </div>
+                    </div>
+
+                    <div class="arena-btn-row">
+                        <button type="button" class="btn-ghost-sm" id="btnLeaveArena">
+                            <i class="fa-solid fa-door-open" aria-hidden="true"></i> Salir al Lobby
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="arenaRoundResultBanner" class="round-result-banner" role="status" aria-live="polite" hidden></div>
+
+            <div class="arena-layout">
+                <!-- COLUMNA IZQUIERDA: MIEMBROS DEL GRUPO (1 vs 5) -->
+                <aside class="arena-sidebar" aria-label="Integrantes del grupo">
+                    <div class="panel-surface compact">
+                        <div class="sidebar-title-row">
+                            <h2>Integrantes (<span id="arenaMemberCount">0</span>)</h2>
+                            <span class="live-badge"><span class="live-dot" aria-hidden="true"></span> EN VIVO</span>
+                        </div>
+                        <ul id="arenaMembersList" class="members-list"></ul>
+                    </div>
+
+                    <div class="panel-surface compact">
+                        <h2>Bitácora de Veredictos</h2>
+                        <ul id="arenaHistoryList" class="history-list"></ul>
+                    </div>
+                </aside>
+
+                <!-- COLUMNA PRINCIPAL: VISTA DE CASETA O TALLER DE ENVÍOS -->
+                <div class="arena-main-container">
+                    <!-- PANEL A: PARA EL 1 INSPECTOR EN LA CASETA -->
+                    <section id="arenaInspectorPanel" class="panel-surface" aria-labelledby="inspectorPanelTitle" hidden>
+                        <div class="panel-header-row">
+                            <div>
+                                <p class="eyebrow-tag danger">ROL ACTIVO: INSPECTOR EN CASETA</p>
+                                <h2 id="inspectorPanelTitle">Bandeja de Archivos Entrantes (<span id="arenaQueueCount">0</span>)</h2>
+                            </div>
+                        </div>
+
+                        <div id="arenaQueueEmpty" class="empty-queue-box">
+                            <i class="fa-solid fa-inbox" aria-hidden="true"></i>
+                            <p>Esperando archivos de tus compañeros remitentes...</p>
+                            <small>Cuando alguno seleccione y envíe un archivo desde su celular, aparecerá aquí para que inspecciones sus Magic Bytes.</small>
+                        </div>
+
+                        <article id="arenaCurrentDossier" class="dossier-booth-card" hidden>
+                            <div class="dossier-top-meta">
+                                <span>Remitente: <strong id="boothSenderName">-</strong></span>
+                                <span class="packet-id-tag" id="boothPacketId">PKT-000</span>
+                            </div>
+
+                            <div class="booth-sla-wrap" id="boothSlaWrap" hidden>
+                                <div class="booth-sla-head">
+                                    <span><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Tiempo límite de respuesta (anti-inactividad)</span>
+                                    <strong id="boothSlaText">15s</strong>
+                                </div>
+                                <div class="timer-track">
+                                    <div class="timer-fill" id="boothSlaFill"></div>
+                                </div>
+                            </div>
+
+                            <div class="booth-inspection-grid">
+                                <dl class="telemetry-dl">
+                                    <div class="dl-row">
+                                        <dt>Nombre enviado</dt>
+                                        <dd><code id="boothFilename">-</code></dd>
+                                    </div>
+                                    <div class="dl-row">
+                                        <dt>Extensión</dt>
+                                        <dd><code id="boothExt">-</code></dd>
+                                    </div>
+                                    <div class="dl-row">
+                                        <dt>Header Content-Type</dt>
+                                        <dd><code id="boothMime">-</code></dd>
+                                    </div>
+                                    <div class="dl-row">
+                                        <dt>Tamaño / Nota</dt>
+                                        <dd id="boothMetaNote">-</dd>
+                                    </div>
+                                </dl>
+
+                                <figure class="hex-figure">
+                                    <figcaption id="boothHexCaption">Inspección de Buffer en Memoria (Hex &amp; ASCII):</figcaption>
+                                    <pre role="region" aria-labelledby="boothHexCaption" tabindex="0"><code id="boothHexDump">-</code></pre>
+                                </figure>
+                            </div>
+
+                            <div id="boothDecisionRow" class="decision-row">
+                                <button type="button" class="btn-stamp-safe" id="btnBoothAllow">
+                                    <i class="fa-solid fa-stamp" aria-hidden="true"></i>
+                                    <span>
+                                        <strong>SELLAR: PERMITIR</strong>
+                                        <small>Imagen auténtica (Conservas tu vida)</small>
+                                    </span>
+                                </button>
+                                <button type="button" class="btn-stamp-danger" id="btnBoothOpenBlock">
+                                    <i class="fa-solid fa-ban" aria-hidden="true"></i>
+                                    <span>
+                                        <strong>SELLAR: BLOQUEAR</strong>
+                                        <small>Clasifica vector exacto o pierdes HP</small>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div id="boothVectorPanel" class="vector-picker-box" hidden>
+                                <div class="vector-picker-head">
+                                    <h3>Selecciona la causa exacta del bloqueo:</h3>
+                                    <button type="button" class="btn-ghost-sm" id="btnBoothCancelBlock">Volver</button>
+                                </div>
+                                <div class="vector-grid">
+                                    <button type="button" class="vector-choice" data-booth-vector="rce">
+                                        <strong>RCE / Doble Extensión</strong>
+                                        <small>Termina en .php o .png.php — ejecuta código en servidor</small>
+                                    </button>
+                                    <button type="button" class="vector-choice" data-booth-vector="spoofing">
+                                        <strong>Magic Bytes Spoofing</strong>
+                                        <small>Extensión de foto, pero Buffer Hex no es PNG/JPG/GIF</small>
+                                    </button>
+                                    <button type="button" class="vector-choice" data-booth-vector="xss">
+                                        <strong>Stored XSS</strong>
+                                        <small>.html o .svg con &lt;script&gt; u onload= — roba sesiones</small>
+                                    </button>
+                                    <button type="button" class="vector-choice" data-booth-vector="traversal">
+                                        <strong>Path Traversal</strong>
+                                        <small>Contiene ../ en el nombre para salir de uploads/</small>
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <div id="arenaInspectFeedback" class="feedback-banner" hidden></div>
+                    </section>
+
+                    <!-- PANEL B: PARA LOS ATACANTES / REMITENTES (TALLER DE SELECCIÓN / FORJA) -->
+                    <section id="arenaSenderPanel" class="panel-surface" aria-labelledby="senderPanelTitle" hidden>
+                        <div class="panel-header-row">
+                            <div>
+                                <p class="eyebrow-tag">ROL ACTIVO: ATACANTE / REMITENTE</p>
+                                <h2 id="senderPanelTitle">Selecciona o fabrica un archivo para enviar a la Caseta</h2>
+                            </div>
+                            <div class="sender-badges-row">
+                                <span class="credits-chip-sender" id="senderCreditsChip">⚡ 200 PTS de ataque</span>
+                                <span class="counter-chip" id="senderQueueChip">En cola: 0</span>
+                            </div>
+                        </div>
+
+                        <p class="panel-desc">
+                            Cada envío consume puntos de ataque para evitar spam: si logras infiltrar un exploit o provocar un falso positivo recuperas puntos y le quitas vida al Casero.
+                        </p>
+
+                        <div class="preset-section">
+                            <h3>1. Selección Rápida de Archivo (Plantillas CWE-434)</h3>
+                            <div class="preset-grid" id="senderPresetsGrid">
+                                <label class="craft-preset">
+                                    <input type="radio" name="craftPreset" value="normal_png" checked>
+                                    <span class="preset-title">avatar_normal.png</span>
+                                    <span class="preset-sub">Señuelo PNG real (busca Falso Positivo)</span>
+                                    <span class="preset-cost-tag">Costo: -50 PTS</span>
+                                </label>
+                                <label class="craft-preset">
+                                    <input type="radio" name="craftPreset" value="normal_jpg">
+                                    <span class="preset-title">carnet_estudiantil.jpg</span>
+                                    <span class="preset-sub">Señuelo JPEG real (busca Falso Positivo)</span>
+                                    <span class="preset-cost-tag">Costo: -50 PTS</span>
+                                </label>
+                                <label class="craft-preset">
+                                    <input type="radio" name="craftPreset" value="spoofed_png">
+                                    <span class="preset-title">spoofed_script.png</span>
+                                    <span class="preset-sub">Spoofing: .png con bytes &lt;?php</span>
+                                    <span class="preset-cost-tag">Costo: -80 PTS</span>
+                                </label>
+                                <label class="craft-preset">
+                                    <input type="radio" name="craftPreset" value="double_ext">
+                                    <span class="preset-title">fake_image.png.php</span>
+                                    <span class="preset-sub">RCE: doble extensión .png.php</span>
+                                    <span class="preset-cost-tag">Costo: -60 PTS</span>
+                                </label>
+                                <label class="craft-preset">
+                                    <input type="radio" name="craftPreset" value="xss_svg">
+                                    <span class="preset-title">insignia_xss.svg</span>
+                                    <span class="preset-sub">Stored XSS: .svg con JS activo</span>
+                                    <span class="preset-cost-tag">Costo: -60 PTS</span>
+                                </label>
+                                <label class="craft-preset">
+                                    <input type="radio" name="craftPreset" value="traversal_png">
+                                    <span class="preset-title">../../../public/logo.png</span>
+                                    <span class="preset-sub">Path Traversal: ../ escapa de uploads/</span>
+                                    <span class="preset-cost-tag">Costo: -80 PTS</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <form id="senderCraftForm" class="craft-form">
+                            <h3>2. Personalización del Paquete HTTP</h3>
+                            <div class="craft-fields-grid">
+                                <div class="field-block">
+                                    <label for="craftFilename">Nombre y extensión declarada</label>
+                                    <input type="text" id="craftFilename" maxlength="90" value="avatar_normal.png" required>
+                                </div>
+                                <div class="field-block">
+                                    <label for="craftMime">Header Content-Type enviado</label>
+                                    <select id="craftMime">
+                                        <option value="image/png">image/png</option>
+                                        <option value="image/jpeg">image/jpeg</option>
+                                        <option value="image/gif">image/gif</option>
+                                        <option value="application/x-httpd-php">application/x-httpd-php</option>
+                                        <option value="text/html">text/html</option>
+                                        <option value="image/svg+xml">image/svg+xml</option>
+                                        <option value="application/octet-stream">application/octet-stream</option>
+                                    </select>
+                                </div>
+                                <div class="field-block">
+                                    <label for="craftPayloadType">Contenido Binario Real (Magic Bytes)</label>
+                                    <select id="craftPayloadType">
+                                        <option value="png_real">PNG Real (89 50 4E 47 0D 0A 1A 0A)</option>
+                                        <option value="jpg_real">JPEG Real (FF D8 FF E0)</option>
+                                        <option value="gif_real">GIF Real (47 49 46 38 39 61)</option>
+                                        <option value="php_rce">Script PHP (3C 3F 70 68 70 = &lt;?php)</option>
+                                        <option value="html_xss">Documento HTML XSS (3C 21 44 4F = &lt;!DO)</option>
+                                        <option value="svg_xss">Vector SVG con JS (3C 73 76 67 = &lt;svg)</option>
+                                    </select>
+                                </div>
+                                <div class="field-block">
+                                    <label for="craftNote">Mensaje opcional para la caseta</label>
+                                    <input type="text" id="craftNote" maxlength="80" placeholder="Ej. Foto para mi perfil de Moodle">
+                                </div>
+                            </div>
+
+                            <div class="sender-submit-row">
+                                <button type="submit" class="btn-primary-booth" id="btnSendPacket">
+                                    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar Archivo a la Caseta
+                                </button>
+                                <span class="sender-feedback-msg" id="senderStatusMsg" role="status" aria-live="polite"></span>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 4: MODO SOLITARIO DE 3 FASES                     -->
+        <!-- ========================================================= -->
+        <section id="screenGame" class="game-screen" aria-labelledby="soloHeading" hidden>
+            <nav class="phase-stepper" aria-label="Progreso de fases">
+                <div class="phase-step is-active" id="stepperPhase1">
+                    <span class="phase-dot">1</span>
+                    <span class="phase-label">Caseta Firewall</span>
+                </div>
+                <div class="phase-step" id="stepperPhase2">
+                    <span class="phase-dot">2</span>
+                    <span class="phase-label">Parcheo server.js</span>
+                </div>
+                <div class="phase-step" id="stepperPhase3">
+                    <span class="phase-dot">3</span>
+                    <span class="phase-label">Ráfaga OWASP</span>
+                </div>
+            </nav>
+
+            <!-- FASE 1 SOLITARIO -->
+            <div id="phase1Container" class="panel-surface">
+                <div class="panel-header-row">
+                    <div>
+                        <p class="eyebrow-tag">FASE 1 • MODO SOLITARIO</p>
+                        <h1 id="soloHeading" tabindex="-1">Inspector de Caseta AppSec</h1>
+                    </div>
+                    <div class="counter-chip" id="phase1Counter">Expediente 1 / 6</div>
+                </div>
+
+                <article id="dossierCard" class="dossier-booth-card">
+                    <div class="dossier-top-meta">
+                        <span id="dossierContext">Petición entrante hacia POST /api/upload</span>
+                        <span class="packet-id-tag" id="dossierId">EXP-001</span>
+                    </div>
+
+                    <div class="booth-inspection-grid">
+                        <dl class="telemetry-dl">
+                            <div class="dl-row">
+                                <dt>Nombre de archivo</dt>
+                                <dd><code id="dossierFilename">-</code></dd>
+                            </div>
+                            <div class="dl-row">
+                                <dt>Extensión aparente</dt>
+                                <dd><code id="dossierExt">-</code></dd>
+                            </div>
+                            <div class="dl-row">
+                                <dt>Header Content-Type</dt>
+                                <dd><code id="dossierMime">-</code></dd>
+                            </div>
+                            <div class="dl-row">
+                                <dt>Tamaño</dt>
+                                <dd id="dossierSize">-</dd>
+                            </div>
+                        </dl>
+
+                        <figure class="hex-figure">
+                            <figcaption id="soloHexCaption">Visor Hexadecimal y ASCII (Primeros 16 Bytes):</figcaption>
+                            <pre role="region" aria-labelledby="soloHexCaption" tabindex="0"><code id="dossierHexDump">-</code></pre>
+                        </figure>
+                    </div>
+
+                    <div id="phase1DecisionControls" class="decision-row">
+                        <button type="button" class="btn-stamp-safe" id="btnSoloAllow">
+                            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                            <span>
+                                <strong>PERMITIR SUBIDA</strong>
+                                <small>Archivo legítimo y seguro</small>
+                            </span>
+                        </button>
+                        <button type="button" class="btn-stamp-danger" id="btnSoloOpenBlock">
+                            <i class="fa-solid fa-ban" aria-hidden="true"></i>
+                            <span>
+                                <strong>BLOQUEAR ATAQUE</strong>
+                                <small>Clasificar vector malicioso</small>
+                            </span>
+                        </button>
+                    </div>
+
+                    <div id="vectorSelector" class="vector-picker-box" hidden>
+                        <div class="vector-picker-head">
+                            <h3>Selecciona el motivo exacto del bloqueo:</h3>
+                            <button type="button" class="btn-ghost-sm" id="btnSoloCancelBlock">Volver</button>
+                        </div>
+                        <div class="vector-grid">
+                            <button type="button" class="vector-choice" data-solo-vector="rce">
+                                <strong>Ejecución Remota (RCE)</strong>
+                                <small>Script ejecutable o doble extensión</small>
+                            </button>
+                            <button type="button" class="vector-choice" data-solo-vector="spoofing">
+                                <strong>Magic Bytes Spoofing</strong>
+                                <small>Extensión de imagen con firma binaria falsa</small>
+                            </button>
+                            <button type="button" class="vector-choice" data-solo-vector="xss">
+                                <strong>Stored XSS</strong>
+                                <small>HTML/SVG con JavaScript ejecutable</small>
+                            </button>
+                            <button type="button" class="vector-choice" data-solo-vector="traversal">
+                                <strong>Path Traversal</strong>
+                                <small>Secuencia ../ en el nombre</small>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="phase1Feedback" class="feedback-banner" hidden></div>
+                </article>
+            </div>
+
+            <!-- FASE 2 SOLITARIO -->
+            <div id="phase2Container" class="panel-surface" hidden>
+                <div class="panel-header-row">
+                    <div>
+                        <p class="eyebrow-tag" id="p2RoleBadge">BLUE TEAM</p>
+                        <h2 id="p2Title">-</h2>
+                    </div>
+                    <div class="counter-chip" id="phase2Counter">Reto 1 / 4</div>
+                </div>
+                <p id="p2Prompt" class="panel-desc">-</p>
+
+                <figure id="p2ContextCodeWrap" class="hex-figure" hidden>
+                    <figcaption id="p2CodeCaption">Fragmento actual de server.js en evaluación:</figcaption>
+                    <pre role="region" aria-labelledby="p2CodeCaption" tabindex="0"><code id="p2ContextCode"></code></pre>
+                </figure>
+
+                <div id="p2OptionsGrid" class="code-options-grid"></div>
+                <div id="phase2Feedback" class="feedback-banner" hidden></div>
+            </div>
+
+            <!-- FASE 3 SOLITARIO -->
+            <div id="phase3Container" class="panel-surface" hidden>
+                <div class="panel-header-row">
+                    <div>
+                        <p class="eyebrow-tag">FASE 3 • RÁFAGA OWASP</p>
+                        <h2>Desafío Final CWE-434</h2>
+                    </div>
+                    <div class="counter-chip" id="phase3Counter">Pregunta 1 / 5</div>
+                </div>
+
+                <div class="timer-track" aria-hidden="true">
+                    <div class="timer-fill" id="p3TimerBar"></div>
+                </div>
+                <div class="timer-readout">
+                    <span>Tiempo restante: <strong id="p3TimerText">20s</strong></span>
+                    <span>Bonificación por velocidad activa</span>
+                </div>
+
+                <h3 id="p3Question" class="quiz-question">-</h3>
+                <div id="p3OptionsGrid" class="quiz-options-grid"></div>
+                <div id="phase3Feedback" class="feedback-banner" hidden></div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 5: RESULTADOS FINALES Y CERTIFICACIÓN            -->
+        <!-- ========================================================= -->
+        <section id="screenResults" class="game-screen" aria-labelledby="resultsHeading" hidden>
+            <div class="results-layout">
+                <div class="panel-surface certificate-card">
+                    <div class="cert-ribbon" id="certIcon" aria-hidden="true">🛡️</div>
+                    <p class="eyebrow-tag">MISIÓN COMPLETADA</p>
+                    <h1 id="resultsHeading" tabindex="-1">Resultado Final</h1>
+                    <h2 id="certRankTitle">Analista AppSec</h2>
+                    <p id="certPlayerLabel" class="cert-player">Estudiante</p>
+
+                    <div class="cert-metrics-grid">
+                        <div class="metric-box">
+                            <span class="metric-val" id="resScore">0</span>
+                            <span class="metric-lbl">Puntaje</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-val" id="resAccuracy">0%</span>
+                            <span class="metric-lbl">Precisión</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-val" id="resIntegrity">100%</span>
+                            <span class="metric-lbl">Integridad</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-val" id="resRank">#-</span>
+                            <span class="metric-lbl">Puesto</span>
+                        </div>
+                    </div>
+
+                    <div class="badges-section">
+                        <h3>Medallas Desbloqueadas</h3>
+                        <ul class="badges-list" id="resBadgesList"></ul>
+                    </div>
+
+                    <div class="results-actions">
+                        <button type="button" class="btn-primary-booth" id="btnPlayAgain">
+                            <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Volver al Lobby
+                        </button>
+                        <a href="/" class="btn-secondary-booth">
+                            <i class="fa-solid fa-flask" aria-hidden="true"></i> Probar en e-Libre
+                        </a>
+                    </div>
+                </div>
+
+                <div class="panel-surface">
+                    <div class="panel-header-row">
+                        <h2>Leaderboard de la Clase</h2>
+                        <span class="live-badge"><span class="live-dot" aria-hidden="true"></span> EN VIVO</span>
+                    </div>
+                    <ol id="resultsLeaderboardContainer" class="leaderboard-list"></ol>
+                </div>
+            </div>
+
+            <div class="panel-surface">
+                <h2>Revisión Educativa de Decisiones</h2>
+                <ul id="reviewList" class="review-list"></ul>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- PANTALLA 6: MODO PROYECTOR (SALÓN DE CLASE)               -->
+        <!-- ========================================================= -->
+        <section id="screenProjector" class="game-screen" aria-labelledby="projectorHeading" hidden>
+            <div class="panel-surface">
+                <div class="projector-top">
+                    <div>
+                        <span class="live-badge"><span class="live-dot" aria-hidden="true"></span> MODO PROYECTOR • AUTO-SYNC</span>
+                        <h1 id="projectorHeading" tabindex="-1">Ranking General y Estado de Grupos</h1>
+                        <p class="join-url-banner">
+                            Únete desde tu celular en: <strong id="projectorJoinUrl"></strong>
+                        </p>
+                    </div>
+                    <div class="projector-controls">
+                        <button type="button" class="btn-primary-booth" id="btnProjShuffleMatch">
+                            <i class="fa-solid fa-shuffle" aria-hidden="true"></i> Sortear Grupos + Video Tutorial
+                        </button>
+                        <button type="button" class="btn-secondary-booth" id="btnProjDirectRound">
+                            <i class="fa-solid fa-bolt" aria-hidden="true"></i> Sorteo / Nueva Ronda Directa
+                        </button>
+                        <button type="button" class="btn-secondary-booth" id="btnProjOpenTutorial">
+                            <i class="fa-solid fa-film" aria-hidden="true"></i> Ver Tutorial
+                        </button>
+                        <button type="button" class="btn-secondary-booth" id="btnProjRefresh">
+                            <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Actualizar
+                        </button>
+                        <button type="button" class="btn-danger-outline" commandfor="resetConfirmDialog" command="show-modal">
+                            <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Reiniciar Ranking
+                        </button>
+                    </div>
+                </div>
+
+                <div class="proj-mode-bar" role="group" aria-label="Modalidad de partida para los estudiantes">
+                    <span class="proj-mode-label"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Modalidad activa para estudiantes:</span>
+                    <div class="proj-mode-toggle">
+                        <button type="button" class="btn-ghost-sm proj-mode-btn is-selected" id="btnProjModeMulti" data-proj-mode="multiplayer">
+                            <i class="fa-solid fa-users-viewfinder" aria-hidden="true"></i> Grupos 1 vs N (Caseta Forense)
+                        </button>
+                        <button type="button" class="btn-ghost-sm proj-mode-btn" id="btnProjModeSolo" data-proj-mode="solo">
+                            <i class="fa-solid fa-user-shield" aria-hidden="true"></i> Misión Individual (3 Fases)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- VIDEO TUTORIAL ANIMADO PARA PROYECTOR (6 ESCENAS CON VOZ NEURAL) -->
+                <section id="projectorTutorialStage" class="tutorial-stage" aria-labelledby="tutorialStageTitle" hidden>
+                    <div class="tutorial-head-bar">
+                        <div>
+                            <span class="eyebrow-tag" id="tutorialPhasePill">ESCENA 1 DE 6 • DINÁMICA DEL JUEGO</span>
+                            <h2 id="tutorialStageTitle">Casero de Supervivencia vs. Atacantes con Puntos</h2>
+                        </div>
+                        <div class="tutorial-head-meta">
+                            <span class="counter-chip" id="tutorialClock">00:00 / 02:05</span>
+                            <button type="button" class="btn-ghost-sm" id="btnTutorialClose">
+                                <i class="fa-solid fa-xmark" aria-hidden="true"></i> Ocultar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="tutorial-viewport" id="tutorialViewport">
+                        <!-- ESCENA 1: FLUJO 1 CASERO vs ATACANTES -->
+                        <div class="tut-scene is-active" id="tutScene0">
+                            <div class="tut-scene-grid">
+                                <div class="tut-node tut-node-attackers">
+                                    <span class="tut-node-icon" aria-hidden="true">📤</span>
+                                    <strong>≥ 3 Atacantes (Puntos)</strong>
+                                    <small>Cada envío cuesta puntos (50–80 PTS) para evitar spam</small>
+                                </div>
+                                <div class="tut-flow-lane" aria-hidden="true">
+                                    <span class="tut-packet pkt-1">avatar.png (-50)</span>
+                                    <span class="tut-packet pkt-2">spoofed.png (-80)</span>
+                                    <span class="tut-packet pkt-3">exploit.svg (-60)</span>
+                                </div>
+                                <div class="tut-node tut-node-booth">
+                                    <span class="tut-node-icon" aria-hidden="true">🛡️</span>
+                                    <strong>1 Casero (100 HP • 2:00)</strong>
+                                    <small>No gana puntos: sobrevive 2 minutos o agota a los atacantes</small>
+                                </div>
+                            </div>
+                            <p class="tut-live-badge" id="tutLiveGroupsBadge">Grupos listos para iniciar</p>
+                        </div>
+
+                        <!-- ESCENA 2: REPASO DE ATAQUES PARTE 1 (RCE y MAGIC BYTES SPOOFING) -->
+                        <div class="tut-scene" id="tutScene1" hidden>
+                            <div class="tut-attack-grid">
+                                <article class="tut-attack-card is-rce">
+                                    <div class="tut-attack-head">
+                                        <strong>1. RCE / Doble Extensión</strong>
+                                        <span class="tut-cost-pill">Costo -60 PTS</span>
+                                    </div>
+                                    <code>exploit.php • fake_image.png.php</code>
+                                    <ul class="tut-attack-points">
+                                        <li><strong>Atacante (qué hace):</strong> Intenta ejecutar código PHP directo en el servidor web.</li>
+                                        <li><strong>Casero (motivo de rechazo):</strong> La extensión final es <code>.php</code> o usa doble extensión <code>.png.php</code>.</li>
+                                    </ul>
+                                </article>
+
+                                <article class="tut-attack-card is-spoof">
+                                    <div class="tut-attack-head">
+                                        <strong>2. Magic Bytes Spoofing</strong>
+                                        <span class="tut-cost-pill">Costo -80 PTS</span>
+                                    </div>
+                                    <code>spoofed_script.png → 3C 3F 70 68 70 (&lt;?php)</code>
+                                    <ul class="tut-attack-points">
+                                        <li><strong>Atacante (qué hace):</strong> Disfraza un script malicioso usando nombre y <code>Content-Type</code> de imagen.</li>
+                                        <li><strong>Casero (motivo de rechazo):</strong> El nombre dice foto, pero el Buffer Hex NO inicia con PNG (<code>89 50 4E 47</code>), JPEG (<code>FF D8 FF</code>) ni GIF.</li>
+                                    </ul>
+                                </article>
+                            </div>
+                        </div>
+
+                        <!-- ESCENA 3: REPASO DE ATAQUES PARTE 2 (STORED XSS y PATH TRAVERSAL) -->
+                        <div class="tut-scene" id="tutScene2" hidden>
+                            <div class="tut-attack-grid">
+                                <article class="tut-attack-card is-xss">
+                                    <div class="tut-attack-head">
+                                        <strong>3. Stored XSS</strong>
+                                        <span class="tut-cost-pill">Costo -60 PTS</span>
+                                    </div>
+                                    <code>insignia_xss.svg • exploit.html (&lt;script&gt; / onload=)</code>
+                                    <ul class="tut-attack-points">
+                                        <li><strong>Atacante (qué hace):</strong> Inyecta JavaScript que se ejecuta en el navegador de otros estudiantes para robar sesiones.</li>
+                                        <li><strong>Casero (motivo de rechazo):</strong> Documento <code>.html</code> o <code>.svg</code> con código activo en su contenido binario.</li>
+                                    </ul>
+                                </article>
+
+                                <article class="tut-attack-card is-traversal">
+                                    <div class="tut-attack-head">
+                                        <strong>4. Path Traversal</strong>
+                                        <span class="tut-cost-pill">Costo -80 PTS</span>
+                                    </div>
+                                    <code>../../../public/logo.png</code>
+                                    <ul class="tut-attack-points">
+                                        <li><strong>Atacante (qué hace):</strong> Escapa de la carpeta <code>uploads/</code> usando <code>../</code> para sobrescribir archivos del sistema (incluso con PNG válido).</li>
+                                        <li><strong>Casero (motivo de rechazo):</strong> El nombre enviado contiene secuencias de ruta como <code>../</code> o <code>..\</code>.</li>
+                                    </ul>
+                                </article>
+                            </div>
+                        </div>
+
+                        <!-- ESCENA 4: ECONOMÍA ANTI-SPAM DE LOS ATACANTES -->
+                        <div class="tut-scene" id="tutScene3" hidden>
+                            <div class="tut-cards-row">
+                                <div class="tut-demo-card is-amber">
+                                    <span class="tut-card-tag">ENVÍO MALICIOSO • COSTO -60 o -80 PTS</span>
+                                    <strong>Infiltrar exploit (RCE, Spoofing, XSS o Traversal)</strong>
+                                    <p>Si el Casero lo aprueba por error: pierde <strong>-25 HP</strong> y tú recuperas <strong>+150 PTS</strong> para seguir atacando.</p>
+                                </div>
+                                <div class="tut-demo-card is-cyan">
+                                    <span class="tut-card-tag">TRAMPA LEGÍTIMA • COSTO -50 PTS</span>
+                                    <strong>Provocar un Falso Positivo con imagen real</strong>
+                                    <p>Si el Casero bloquea una foto auténtica: pierde <strong>-15 HP</strong> y tú ganas <strong>+110 PTS</strong> de munición.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ESCENA 5: INSPECCIÓN FORENSE EN CASETA -->
+                        <div class="tut-scene" id="tutScene4" hidden>
+                            <div class="tut-booth-sim">
+                                <div class="tut-sim-file">
+                                    <div>Archivo: <code>spoofed_script.png</code></div>
+                                    <div>Content-Type: <code>image/png</code></div>
+                                    <div class="tut-hex-scan">
+                                        <span>Buffer Hex:</span>
+                                        <code>3C 3F 70 68 70 20 (&lt;?php)</code>
+                                    </div>
+                                </div>
+                                <div class="tut-stamp-seal">
+                                    BLOQUEADO: MAGIC BYTES SPOOFING • 100 HP INTACTA • ATACANTE -80 PTS
+                                </div>
+                            </div>
+                            <p class="tut-warn-strip">
+                                ⚠️ Si bloqueas un ataque eligiendo el vector equivocado, pierdes -10 HP y el atacante recupera +70 PTS.
+                            </p>
+                        </div>
+
+                        <!-- ESCENA 6: CONDICIONES DE VICTORIA Y ARRANQUE -->
+                        <div class="tut-scene" id="tutScene5" hidden>
+                            <div class="tut-ready-box">
+                                <div class="tut-ready-scores">
+                                    <span>🛡️ Casero gana si: <strong>aguanta 2:00</strong> o todos quedan con <strong>&lt;50 PTS</strong></span>
+                                    <span>🚨 Atacantes ganan si: bajan al Casero a <strong>0 HP</strong></span>
+                                    <span>📖 Ayuda en partida: abre el botón <strong>Manual Forense</strong> cuando necesites ver las firmas Hex</span>
+                                    <span>🎲 Rotación al azar al terminar la ronda o desde el botón de caseta</span>
+                                </div>
+                                <div class="tut-ready-banner">¡MIRA TU CELULAR Y PREPÁRATE PARA JUGAR!</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tut-subtitle-bar" id="tutorialSubtitle" aria-live="polite">
+                        Bienvenidos a la Caseta Forense de e-Libre. Cada grupo tiene 1 Casero aleatorio con 100 HP por 2 minutos y al menos 3 atacantes con puntos.
+                    </div>
+
+                    <div class="tut-timeline-track" aria-hidden="true">
+                        <div class="tut-timeline-fill" id="tutTimelineBar"></div>
+                    </div>
+
+                    <div class="tut-controls-bar">
+                        <div class="tut-btn-group">
+                            <button type="button" class="btn-secondary-booth" id="btnTutPlayPause">Pausar</button>
+                            <button type="button" class="btn-ghost-sm" id="btnTutVoice">Voz Neural: Activa</button>
+                            <button type="button" class="btn-ghost-sm" id="btnTutRestart">Repetir</button>
+                        </div>
+
+                        <div class="tut-chapters" role="group" aria-label="Escenas del tutorial">
+                            <button type="button" class="btn-ghost-sm tut-chap-btn is-current" data-tut-scene="0">1. Roles</button>
+                            <button type="button" class="btn-ghost-sm tut-chap-btn" data-tut-scene="1">2. RCE / Spoofing</button>
+                            <button type="button" class="btn-ghost-sm tut-chap-btn" data-tut-scene="2">3. XSS / Traversal</button>
+                            <button type="button" class="btn-ghost-sm tut-chap-btn" data-tut-scene="3">4. Atacantes</button>
+                            <button type="button" class="btn-ghost-sm tut-chap-btn" data-tut-scene="4">5. Caseta</button>
+                            <button type="button" class="btn-ghost-sm tut-chap-btn" data-tut-scene="5">6. Victoria</button>
+                        </div>
+
+                        <div class="tut-launch-group">
+                            <label class="tut-auto-check">
+                                <input type="checkbox" id="chkTutAutoLaunch" checked>
+                                <span>Iniciar al terminar</span>
+                            </label>
+                            <button type="button" class="btn-primary-booth" id="btnTutLaunchNow">
+                                <i class="fa-solid fa-play" aria-hidden="true"></i> Iniciar Partida YA
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="projector-stats-bar">
+                    <span>Participantes: <strong id="projTotalPlayers">0</strong></span>
+                    <span>En espera: <strong id="projWaitingCount">0</strong></span>
+                    <span>Estado: <strong id="projMatchState">Esperando sorteo</strong></span>
+                    <span>Última sincronización: <strong id="projLastSync">-</strong></span>
+                </div>
+
+                <p class="preview-group-pill" id="projPreviewSummary">Sin participantes en cola.</p>
+                <section id="projectorLiveStageSection" class="proj-live-section" aria-label="Escenario en vivo de casetas" hidden>
+                    <div class="proj-live-head">
+                        <h2><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Casetas en Vivo — Filas de Solicitudes y Veredictos</h2>
+                        <span class="proj-live-legend">
+                            <span>🟢 Pasa seguro</span>
+                            <span>🚫 Bloqueado</span>
+                            <span>💥 Brecha / Timeout</span>
+                        </span>
+                    </div>
+                    <div id="projectorRoomsSummary" class="proj-stages-grid"></div>
+                </section>
+                <div id="projectorPodium" class="podium-grid"></div>
+                <ol id="projectorLeaderboardList" class="leaderboard-list"></ol>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- POPOVER NATIVO: REGLAS 1 vs 5                             -->
+    <!-- ========================================================= -->
+    <div id="scoringPopover" popover="auto" class="native-popover">
+        <h3>Reglas de Supervivencia y Economía Anti-Spam</h3>
+        <ul>
+            <li><strong>Casero (100 HP • 2:00):</strong> No gana puntos por archivo; debe conservar vida durante 2 minutos o dejar a los atacantes sin puntos (&lt; 50 PTS).</li>
+            <li><strong>Atacantes (Puntos de Ataque):</strong> Enviar archivos cuesta <strong>50 PTS</strong> (imagen real), <strong>60 PTS</strong> (RCE/XSS) u <strong>80 PTS</strong> (Spoofing/Traversal).</li>
+            <li><strong>Recarga al acertar ataque:</strong> Brecha exitosa da <strong>+150 PTS</strong> (-25 HP); Falso Positivo da <strong>+110 PTS</strong> (-15 HP); Vector incorrecto da <strong>+70 PTS</strong> (-10 HP).</li>
+            <li><strong>Anti-inactividad (SLA 15s):</strong> El Casero tiene <strong>15 segundos</strong> por expediente en ventanilla. Si no responde a tiempo pierde <strong>-20 HP</strong> (exploit, +120 PTS al atacante) o <strong>-15 HP</strong> (foto real, +100 PTS al atacante).</li>
+            <li><strong>Defensa exacta:</strong> El Casero conserva toda su vida y el atacante pierde los puntos gastados.</li>
+        </ul>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- DIALOG MODAL NATIVO: MANUAL FORENSE CWE-434               -->
+    <!-- ========================================================= -->
+    <dialog id="manualDialog" closedby="any" aria-labelledby="manualDialogTitle">
+        <div class="dialog-head">
+            <h2 id="manualDialogTitle">Manual Forense de Caseta (CWE-434)</h2>
+            <button type="button" class="btn-ghost-sm" commandfor="manualDialog" command="close" aria-label="Cerrar manual">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i> Cerrar
+            </button>
+        </div>
+        <div class="dialog-body">
+            <section aria-label="Secciones del manual forense">
+                <details name="cwe-manual" open>
+                    <summary>1. Tabla de Firmas Binarias (Magic Bytes)</summary>
+                    <div class="details-inner">
+                        <table class="magic-table">
+                            <thead>
+                                <tr>
+                                    <th>Formato</th>
+                                    <th>Bytes Hexadecimales</th>
+                                    <th>ASCII</th>
+                                    <th>Clasificación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>PNG</td>
+                                    <td><code>89 50 4E 47 0D 0A 1A 0A</code></td>
+                                    <td><code>.PNG....</code></td>
+                                    <td>Imagen Segura</td>
+                                </tr>
+                                <tr>
+                                    <td>JPEG / JPG</td>
+                                    <td><code>FF D8 FF</code></td>
+                                    <td><code>ÿØÿ</code></td>
+                                    <td>Imagen Segura</td>
+                                </tr>
+                                <tr>
+                                    <td>GIF</td>
+                                    <td><code>47 49 46 38 39 61</code></td>
+                                    <td><code>GIF89a</code></td>
+                                    <td>Imagen Segura</td>
+                                </tr>
+                                <tr>
+                                    <td>PHP (RCE)</td>
+                                    <td><code>3C 3F 70 68 70</code></td>
+                                    <td><code>&lt;?php</code></td>
+                                    <td>Ejecución Remota</td>
+                                </tr>
+                                <tr>
+                                    <td>HTML / SVG</td>
+                                    <td><code>3C 21 44 4F</code> / <code>3C 73 76 67</code></td>
+                                    <td><code>&lt;!DO</code> / <code>&lt;svg</code></td>
+                                    <td>Stored XSS</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+
+                <details name="cwe-manual">
+                    <summary>2. Los 4 Vectores de Bloqueo en Caseta</summary>
+                    <div class="details-inner">
+                        <ul class="manual-list">
+                            <li><strong>RCE / Doble Extensión:</strong> Archivos ejecutables como <code>.php</code> o <code>fake_image.png.php</code>.</li>
+                            <li><strong>Magic Bytes Spoofing:</strong> Archivo con extensión de imagen (<code>.png</code>) cuyo buffer contiene <code>&lt;?php</code>, HTML o formato distinto al declarado.</li>
+                            <li><strong>Stored XSS:</strong> Documentos <code>.html</code> o <code>.svg</code> con scripts ejecutables en el navegador.</li>
+                            <li><strong>Path Traversal:</strong> Nombres con <code>../</code> o rutas para escapar del directorio de subida.</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details name="cwe-manual">
+                    <summary>3. Controles Defensivos (Defense in Depth)</summary>
+                    <div class="details-inner">
+                        <ul class="manual-list">
+                            <li><strong>Lista Blanca Estricta:</strong> Solo <code>.jpg, .jpeg, .png, .gif</code>.</li>
+                            <li><strong>Buffer en Memoria:</strong> Validar Magic Bytes con <code>multer.memoryStorage()</code> antes de guardar en disco.</li>
+                            <li><strong>UUID v4 y Aislamiento:</strong> Renombrar con <code>crypto.randomUUID()</code> y servir fuera de raíz ejecutable con <code>X-Content-Type-Options: nosniff</code>.</li>
+                        </ul>
+                    </div>
+                </details>
+            </section>
+        </div>
+    </dialog>
+
+    <!-- ========================================================= -->
+    <!-- DIALOG MODAL NATIVO: CONFIRMACIÓN DE REINICIO             -->
+    <!-- ========================================================= -->
+    <dialog id="resetConfirmDialog" closedby="any" aria-labelledby="resetDialogTitle">
+        <div class="dialog-head">
+            <h2 id="resetDialogTitle">¿Reiniciar ranking y salas de la clase?</h2>
+        </div>
+        <form method="dialog" class="dialog-body">
+            <p>Esta acción limpiará el Leaderboard global y vaciará las colas actuales para iniciar una nueva ronda en clase.</p>
+            <div class="dialog-actions">
+                <button type="submit" value="cancel" class="btn-secondary-booth" autofocus>Cancelar</button>
+                <button type="submit" value="confirm" class="btn-danger-outline">Sí, reiniciar ronda</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script type="module" src="/js/game.js"></script>
+</body>
+</html>

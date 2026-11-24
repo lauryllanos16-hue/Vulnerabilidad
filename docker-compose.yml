@@ -1,0 +1,10 @@
+services:
+  lab-cwe434:
+    build: .
+    container_name: lab-cwe434
+    ports:
+      - "8085:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    restart: unless-stopped

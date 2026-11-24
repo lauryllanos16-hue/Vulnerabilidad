@@ -5,3 +5,4 @@ uploads/vulnerable/*
 !uploads/vulnerable/.gitkeep
 uploads/secure/*
 !uploads/secure/.gitkeep
+uploads/leaderboard.json
